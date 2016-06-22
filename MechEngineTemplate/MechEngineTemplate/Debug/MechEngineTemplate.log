@@ -1,0 +1,12 @@
+﻿  MyGame.cpp
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(121): warning C4244: '=': conversion from 'DWORD' to 'float', possible loss of data
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(122): warning C4244: '=': conversion from 'DWORD' to 'float', possible loss of data
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(182): warning C4018: '<': signed/unsigned mismatch
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(265): warning C4018: '<': signed/unsigned mismatch
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mech.h(123): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
+  c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(185): note: see reference to function template instantiation 'bool rayIntersect<UNIT>(int,int,T &,CAMERA,float,float,D3DXVECTOR3 &)' being compiled
+          with
+          [
+              T=UNIT
+          ]
+  MechEngineTemplate.vcxproj -> C:\Users\customer\Documents\Mech Engine Projects\_MechEngineTemplate\MechEngineTemplate\Debug\MechEngineTemplate.exe
