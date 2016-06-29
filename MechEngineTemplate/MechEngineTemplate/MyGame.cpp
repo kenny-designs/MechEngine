@@ -138,9 +138,9 @@ bool Game_Init(HWND window)
 		return 0;
 	}
 	 // load units
-	munkeyUnit.setUnit("suzanneTextured.x", "Suzanne", 0.05f);
-	coneUnit.setUnit("cone.x", "Cone", 0.05f);
-	mercyUnit.setUnit("Mercy.x", "Mercy", 0.05f);
+	munkeyUnit.setUnit("suzanneTextured.x", "Suzanne", 0.005f);
+	coneUnit.setUnit("cone.x", "Cone", 0.005f);
+	mercyUnit.setUnit("Mercy.x", "Mercy", 0.005f);
 
 	allUnits.push_back(&munkeyUnit);
 	allUnits.push_back(&coneUnit);
@@ -265,7 +265,7 @@ void Game_Run(HWND window)
 		for (int i = 0; i < allUnits.size(); i++)
 		{
 			allUnits[i]->moveUnit(allUnits[i]->endPosition);
-			allUnits[i]->drawModel(camObj);
+			allUnits[i]->drawModel(camObj); // testing
 		}
 		
 

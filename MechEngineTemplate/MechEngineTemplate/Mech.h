@@ -13,7 +13,7 @@ public:
 	D3DXVECTOR3 endPosition; // the position the UNIT should move to
 
 	void setUnit(std::string filename, std::string unitName, float speed); // sets values for the unit
-	void moveUnit(D3DXVECTOR3 endPos); // move unit to selected position
+	void moveUnit(D3DXVECTOR3 endPos); // move unit to selected position and rotate
 };
 
 // math values

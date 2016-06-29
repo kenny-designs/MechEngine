@@ -64,7 +64,36 @@ void UNIT::setUnit(std::string filename, std::string unitName, float speed)
 	endPosition = translate;
 }
 
+// moves unit and rotates it based on direction moved
 void UNIT::moveUnit(D3DXVECTOR3 endPos)
 {
+	D3DXVECTOR3 prevPos, magnitude;
+	double unitAngle = 0.0f;
+	prevPos = translate;
 	D3DXVec3Lerp(&translate, &translate, &endPos, speedMult);
+	magnitude = translate - prevPos;
+
+	// assumes rotation of unit starts by facing camera at rotation.x = 0
+	if (magnitude.x > 0.0f && magnitude.z > 0.0f) // Quadrant 1 
+	{
+		unitAngle = atan(magnitude.x / magnitude.z);
+		unitAngle = std::abs(toDegrees(unitAngle));
+	}
+	else if (magnitude.x < 0.0f && magnitude.z > 0.0f) // Quadrant 2
+	{
+		unitAngle = atan(magnitude.z / magnitude.x);
+		unitAngle = std::abs(toDegrees(unitAngle)) + 270;
+	}
+	else if (magnitude.x < 0.0f && magnitude.z < 0.0f) // Quadrant 3
+	{
+		unitAngle = atan(magnitude.x / magnitude.z);
+		unitAngle = std::abs(toDegrees(unitAngle)) + 180;
+	}
+	else if (magnitude.x > 0.0f && magnitude.z < 0.0f) // Quadrant 4
+	{
+		unitAngle = atan(magnitude.z / magnitude.x);
+		unitAngle = std::abs(toDegrees(unitAngle)) + 90;
+	}
+
+	rotate.x = (float)unitAngle + 180.0f; // Apply rotation
 }
