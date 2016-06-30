@@ -53,7 +53,7 @@ double screencount = 0.0;
 DWORD coretime = 0;
 double corefps = 0.0;
 double corecount = 0.0;
-DWORD currenttime;
+DWORD currenttime = 0;
 
 // font variables
 LPD3DXFONT debugText = NULL;
@@ -138,9 +138,9 @@ bool Game_Init(HWND window)
 		return 0;
 	}
 	 // load units
-	munkeyUnit.setUnit("suzanneTextured.x", "Suzanne", 0.005f);
-	coneUnit.setUnit("cone.x", "Cone", 0.005f);
-	mercyUnit.setUnit("Mercy.x", "Mercy", 0.005f);
+	munkeyUnit.setUnit("suzanneTextured.x", "Suzanne", 0.05f);
+	coneUnit.setUnit("cone.x", "Cone", 0.05f);
+	mercyUnit.setUnit("Mercy.x", "Mercy", 0.05f);
 
 	allUnits.push_back(&munkeyUnit);
 	allUnits.push_back(&coneUnit);
@@ -158,7 +158,6 @@ void Game_Run(HWND window)
 	d3ddev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
 		D3DCOLOR_XRGB(0, 0, 100), 1.0f, 0);
 
-	// get current ticks
 	currenttime = timeGetTime();
 
 	// calculate core frame rate
@@ -245,8 +244,6 @@ void Game_Run(HWND window)
 		floorMesh->translate.y = -1.0f;
 		floorMesh->translate.z = 2.0f;
 
-		// floorMesh->rotate.x += 1.0f;
-
 		// escape key exits
 		if (KEY_DOWN(VK_ESCAPE))
 			gameover = true;
@@ -259,15 +256,20 @@ void Game_Run(HWND window)
 	// begin rendering
 	if (d3ddev->BeginScene())
 	{
-		// monkeyFella->drawModel(camObj);
 		floorMesh->drawModel(camObj);
+		
 		
 		for (int i = 0; i < allUnits.size(); i++)
 		{
 			allUnits[i]->moveUnit(allUnits[i]->endPosition);
-			allUnits[i]->drawModel(camObj); // testing
+			allUnits[i]->drawModel(camObj); 
 		}
 		
+		// draws only mercy
+		/*
+		allUnits[2]->moveUnit(allUnits[2]->endPosition);
+		allUnits[2]->drawModel(camObj);
+		*/
 
 		spriteobj->Begin(D3DXSPRITE_ALPHABLEND);
 

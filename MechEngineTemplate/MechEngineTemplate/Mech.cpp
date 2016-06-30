@@ -67,33 +67,41 @@ void UNIT::setUnit(std::string filename, std::string unitName, float speed)
 // moves unit and rotates it based on direction moved
 void UNIT::moveUnit(D3DXVECTOR3 endPos)
 {
-	D3DXVECTOR3 prevPos, magnitude;
-	double unitAngle = 0.0f;
-	prevPos = translate;
-	D3DXVec3Lerp(&translate, &translate, &endPos, speedMult);
-	magnitude = translate - prevPos;
+	D3DXVECTOR3 unitDir;
+	double unitAngle = 0;
 
-	// assumes rotation of unit starts by facing camera at rotation.x = 0
-	if (magnitude.x > 0.0f && magnitude.z > 0.0f) // Quadrant 1 
+	unitDir = endPos - translate; // direction unit is moving in
+
+	if (std::abs(unitDir.x) < 0.05f && std::abs(unitDir.z) < 0.05f) // reached destination
 	{
-		unitAngle = atan(magnitude.x / magnitude.z);
-		unitAngle = std::abs(toDegrees(unitAngle));
+		unitAngle = (double)rotate.x;
+		unitDir *= 0;
+		endPosition = translate;
 	}
-	else if (magnitude.x < 0.0f && magnitude.z > 0.0f) // Quadrant 2
+	else if (unitDir.x > 0.0f && unitDir.z > 0.0f) // Quadrant 1 
 	{
-		unitAngle = atan(magnitude.z / magnitude.x);
+		unitAngle = atan(unitDir.x / unitDir.z);
+		unitAngle = std::abs(toDegrees(unitAngle) + 180);
+	}
+	else if (unitDir.x < 0.0f && unitDir.z > 0.0f) // Quadrant 2
+	{
+		unitAngle = atan(unitDir.z / unitDir.x);
+		unitAngle = std::abs(toDegrees(unitAngle)) + 450;
+	}
+	else if (unitDir.x < 0.0f && unitDir.z < 0.0f) // Quadrant 3
+	{
+		unitAngle = atan(unitDir.x / unitDir.z);
+		unitAngle = std::abs(toDegrees(unitAngle)) + 360;
+	}
+	else if (unitDir.x > 0.0f && unitDir.z < 0.0f) // Quadrant 4
+	{
+		unitAngle = atan(unitDir.z / unitDir.x);
 		unitAngle = std::abs(toDegrees(unitAngle)) + 270;
 	}
-	else if (magnitude.x < 0.0f && magnitude.z < 0.0f) // Quadrant 3
-	{
-		unitAngle = atan(magnitude.x / magnitude.z);
-		unitAngle = std::abs(toDegrees(unitAngle)) + 180;
-	}
-	else if (magnitude.x > 0.0f && magnitude.z < 0.0f) // Quadrant 4
-	{
-		unitAngle = atan(magnitude.z / magnitude.x);
-		unitAngle = std::abs(toDegrees(unitAngle)) + 90;
-	}
 
-	rotate.x = (float)unitAngle + 180.0f; // Apply rotation
+	D3DXVec3Normalize(&unitDir, &unitDir); // normalize vector
+
+	translate += unitDir * speedMult; // move unit
+
+	rotate.x = (float)unitAngle; // set rotation
 }

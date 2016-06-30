@@ -43,6 +43,16 @@ extern float SCREEN_ASPECT;
 extern const bool FULLSCREEN;
 extern bool gameover;
 
+// timing variables
+extern DWORD refresh;
+extern DWORD screentime;
+extern double screenfps;
+extern double screencount;
+extern DWORD coretime;
+extern double corefps;
+extern double corecount;
+extern DWORD currenttime;
+
 // primary DirectSound object
 extern CSoundManager *dsound;
 
