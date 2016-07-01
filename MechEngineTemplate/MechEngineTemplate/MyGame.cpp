@@ -11,18 +11,17 @@
 
 // program values
 const std::string APPTITLE = "Mech Engine"; 
-const int SCREENW = 768; // switch to 1366 when going fullscreen
-const int SCREENH = 512;
+const int SCREENW = 768;
+const int SCREENH = 576; 
 const float NEAR_LENGTH = 1.0f; 
 const float FAR_LENGTH = 100.0f; 
 const float FOV = D3DX_PI / 4.0f;
 float SCREEN_ASPECT;
-const bool FULLSCREEN = false;
+const bool FULLSCREEN = false; // overrides SCREENW and SCREENH 
 D3DVIEWPORT9 m_mainViewport;
 CAMERA camObj;
 float m_screenWidth, m_screenHeight;
 float screenAspect;
-float scaleMod = 0.005f;
 D3DXVECTOR3 rayIntersectPos;
 
 // 3D meshes
@@ -172,8 +171,9 @@ void Game_Run(HWND window)
 	// get cursor position
 	GetCursorPos(&cursPt);
 	
-	// convert screen coords to client coords
-	ScreenToClient(window, &cursPt);
+	// if windowed, convert screen coords to client coords
+	if(!FULLSCREEN)
+		ScreenToClient(window, &cursPt);
 
 	// left click selects a unit
 	if (KEY_DOWN(VK_LBUTTON))
@@ -204,9 +204,9 @@ void Game_Run(HWND window)
 	D3DXVECTOR3 camOffset = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	if (cursPt.y <= 0)
 		camOffset.z += 0.15f;
-	if (cursPt.y >= m_screenHeight)
+	if (cursPt.y >= m_screenHeight -1)
 		camOffset.z -= 0.15f;
-	if (cursPt.x >= m_screenWidth)
+	if (cursPt.x >= m_screenWidth - 1)
 		camOffset.x += 0.15f;
 	if (cursPt.x <= 0)
 		camOffset.x -= 0.15f;
@@ -264,12 +264,6 @@ void Game_Run(HWND window)
 			allUnits[i]->moveUnit(allUnits[i]->endPosition);
 			allUnits[i]->drawModel(camObj); 
 		}
-		
-		// draws only mercy
-		/*
-		allUnits[2]->moveUnit(allUnits[2]->endPosition);
-		allUnits[2]->drawModel(camObj);
-		*/
 
 		spriteobj->Begin(D3DXSPRITE_ALPHABLEND);
 

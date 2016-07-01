@@ -41,8 +41,22 @@ bool Direct3D_Init(HWND window, int width, int height, bool fullscreen)
 	d3dpp.MultiSampleType = D3DMULTISAMPLE_2_SAMPLES;
 	d3dpp.BackBufferFormat = D3DFMT_X8R8G8B8;
 	d3dpp.BackBufferCount = 1;
-	d3dpp.BackBufferWidth = width;
-	d3dpp.BackBufferHeight = height;
+
+	// account for fullscreen
+	if (fullscreen)
+	{
+		RECT desktop;
+		const HWND hDesktop = GetDesktopWindow();
+		GetWindowRect(hDesktop, &desktop);
+		d3dpp.BackBufferWidth = desktop.right;
+		d3dpp.BackBufferHeight = desktop.bottom;
+	}
+	else
+	{
+		d3dpp.BackBufferWidth = width;
+		d3dpp.BackBufferHeight = height;
+	}
+
 	d3dpp.hDeviceWindow = window;
 	// Allows for zbuffering
 	d3dpp.EnableAutoDepthStencil = TRUE;
