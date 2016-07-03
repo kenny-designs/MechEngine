@@ -31,20 +31,15 @@
     <ClCompile Include="MyWindows.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="cone.x" />
+    <None Include="brickWall.x" />
     <None Include="floor.x" />
-    <None Include="Mercy.x" />
-    <None Include="suzanneTextured.x" />
+    <None Include="zombie.x" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="blueCone.bmp" />
     <Image Include="concreteFloor.bmp" />
-    <Image Include="Eye.tga" />
-    <Image Include="Hair_D.tga" />
-    <Image Include="Mercy_D.tga" />
-    <Image Include="suzanneTextured.bmp" />
-    <Image Include="Weapon_D.tga" />
-    <Image Include="Wings.tga" />
+    <Image Include="TexturesCom_BrickSmallBrown0270_1_seamless_S.jpg" />
+    <Image Include="TexturesCom_ConcreteBare0244_1_seamless_S.jpg" />
+    <Image Include="Zombie.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D1F1C560-9BD4-4858-A1E6-E151D540E64D}</ProjectGuid>

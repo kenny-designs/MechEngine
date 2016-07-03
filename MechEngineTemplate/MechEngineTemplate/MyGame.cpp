@@ -26,11 +26,10 @@ D3DXVECTOR3 rayIntersectPos;
 
 // 3D meshes
 MODEL *floorMesh;
+MODEL *brickMesh;
 
 // Units
-UNIT munkeyUnit;
-UNIT coneUnit;
-UNIT mercyUnit;
+UNIT zombieUnit;
 
 // vector that holds all units
 std::vector<UNIT*> allUnits;
@@ -76,19 +75,7 @@ void Draw_HUD()
 		ToString(rayIntersectPos.x) + ", " +
 		ToString(rayIntersectPos.y) + ", " +
 		ToString(rayIntersectPos.z) + ")");
-	FontPrint(debugText, 10, 50, "FloorMesh translate at (" +
-		ToString(floorMesh->translate.x) + ", " +
-		ToString(floorMesh->translate.y) + ", " +
-		ToString(floorMesh->translate.z) + ")");
-	FontPrint(debugText, 10, 70, "FloorMesh rotation at (" +
-		ToString(floorMesh->rotate.x) + ", " +
-		ToString(floorMesh->rotate.y) + ", " +
-		ToString(floorMesh->rotate.z) + ")");
-	FontPrint(debugText, 10, 90, "FloorMesh scale at (" +
-		ToString(floorMesh->scale.x) + ", " +
-		ToString(floorMesh->scale.y) + ", " +
-		ToString(floorMesh->scale.z) + ")");
-	FontPrint(debugText, 10, 110, "The current selected unit is: " +
+	FontPrint(debugText, 10, 50, "The current selected unit is: " +
 		currentSU);
 }
 
@@ -130,20 +117,33 @@ bool Game_Init(HWND window)
 	// set fonts
 	debugText = MakeFont("Arial", 24);
 
+	// load models
 	floorMesh = LoadModel("floor.x");
 	if (floorMesh == NULL)
 	{
 		MessageBox(window, "Error loading floorMesh!", APPTITLE.c_str(), MB_OK);
 		return 0;
 	}
-	 // load units
-	munkeyUnit.setUnit("suzanneTextured.x", "Suzanne", 0.05f);
-	coneUnit.setUnit("cone.x", "Cone", 0.05f);
-	mercyUnit.setUnit("Mercy.x", "Mercy", 0.05f);
 
-	allUnits.push_back(&munkeyUnit);
-	allUnits.push_back(&coneUnit);
-	allUnits.push_back(&mercyUnit);
+	// set the plane
+	floorMesh->translate.x = 3.0f;
+	floorMesh->translate.y = -1.0f;
+	floorMesh->translate.z = 2.0f;
+
+	brickMesh = LoadModel("brickWall.x");
+	if (brickMesh == NULL)
+	{
+		MessageBox(window, "Error loading brickMesh!", APPTITLE.c_str(), MB_OK);
+		return 0;
+	}
+
+	// set the wall
+	brickMesh->translate.x = 3.0f;
+	brickMesh->translate.y = -1.0f;
+	brickMesh->translate.z = 2.0f;
+
+	zombieUnit.setUnit("zombie.x", "Zombie", 0.05f);
+	allUnits.push_back(&zombieUnit);
 
 	return true;
 }
@@ -192,11 +192,12 @@ void Game_Run(HWND window)
 
 	// right click tells unit where to go
 	if (KEY_DOWN(VK_RBUTTON))
+
 	{
 		if (rayIntersect(cursPt.x, cursPt.y, *floorMesh, camObj,
 			m_screenWidth, m_screenHeight, rayIntersectPos))
 		{
-			allUnits[selectID]->endPosition = rayIntersectPos;
+			if(selectID >= 0) allUnits[selectID]->endPosition = rayIntersectPos;
 		}
 	}
 
@@ -239,10 +240,6 @@ void Game_Run(HWND window)
 			screencount = 0.0;
 			screentime = currenttime;
 		}
-		// set the plane
-		floorMesh->translate.x = 3.0f;
-		floorMesh->translate.y = -1.0f;
-		floorMesh->translate.z = 2.0f;
 
 		// escape key exits
 		if (KEY_DOWN(VK_ESCAPE))
@@ -257,7 +254,7 @@ void Game_Run(HWND window)
 	if (d3ddev->BeginScene())
 	{
 		floorMesh->drawModel(camObj);
-		
+		brickMesh->drawModel(camObj);
 		
 		for (int i = 0; i < allUnits.size(); i++)
 		{

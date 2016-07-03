@@ -43,25 +43,22 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="suzanneTextured.x" />
     <None Include="floor.x" />
-    <None Include="cone.x" />
-    <None Include="Mercy.x" />
+    <None Include="brickWall.x" />
+    <None Include="zombie.x" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="suzanneTextured.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="concreteFloor.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="blueCone.bmp">
+    <Image Include="TexturesCom_BrickSmallBrown0270_1_seamless_S.jpg">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="Hair_D.tga" />
-    <Image Include="Weapon_D.tga" />
-    <Image Include="Eye.tga" />
-    <Image Include="Mercy_D.tga" />
-    <Image Include="Wings.tga" />
+    <Image Include="TexturesCom_ConcreteBare0244_1_seamless_S.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Zombie.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
