@@ -33,12 +33,14 @@
   <ItemGroup>
     <None Include="brickWall.x" />
     <None Include="floor.x" />
+    <None Include="tiny.x" />
     <None Include="zombie.x" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="concreteFloor.bmp" />
     <Image Include="TexturesCom_BrickSmallBrown0270_1_seamless_S.jpg" />
     <Image Include="TexturesCom_ConcreteBare0244_1_seamless_S.jpg" />
+    <Image Include="tiny_skin.bmp" />
     <Image Include="Zombie.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

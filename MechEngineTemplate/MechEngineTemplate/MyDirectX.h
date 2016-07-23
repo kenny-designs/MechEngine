@@ -3,11 +3,13 @@
 // header files
 #define WIN32_EXTRA_LEAN
 #define DIRECTINPUT_VERSION 0x0800
-#include <windows.h>
+#define D3D_DEBUG_INFO
+#include <Windows.h>
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <dinput.h>
 #include <xinput.h>
+#include <d3dx9anim.h>
 #include <ctime>
 #include <iostream>
 #include <iomanip>
@@ -97,8 +99,73 @@ struct SPRITE
 	}
 };
 
+// altering D3DXFRAME to better suit animation
+typedef struct _D3DXFRAME_DERIVED : public D3DXFRAME
+{
+	D3DXMATRIX matCombined; // Combined transformation matrix
+}FRAME, *LPFRAME;
+
+// also altering D3DXMESHCONTAINER
+typedef struct _D3DXMESHCONTAINER_DERIVED : public D3DXMESHCONTAINER
+{
+	// Mesh variables
+	LPDIRECT3DTEXTURE9 *ppTextures;			// textures of the mesh
+	D3DMATERIAL9 *pMaterials9;				// Use the DirectX 9 material type
+
+	// skinned mesh variables
+	LPD3DXMESH pSkinMesh;					// the skin mesh
+	LPD3DXMATRIX pBoneOffsets;				// The bone matrix offsets
+	LPD3DXMATRIX *ppFrameMatrices;			// pointer to the frame matrix
+
+	// attribute table stuff
+	LPD3DXATTRIBUTERANGE pAttributeTable;	// the attriute table
+	DWORD NumAttributeGroups;				// the number of attribute groups
+}MESHCONTAINER, *LPMESHCONTAINER;
+
+// altering LPD3DXALLOCATEHIERARCHY
+class CAllocateHierarchy : public ID3DXAllocateHierarchy
+{
+public:
+	// Create a frame
+	STDMETHOD(CreateFrame)(THIS_ LPCTSTR Name,  // name of frame
+		LPD3DXFRAME *ppNewFrame);				// output new frame
+
+	// Create a Mesh Container
+	STDMETHOD(CreateMeshContainer)(THIS_ LPCTSTR Name,  // name of mesh
+		const D3DXMESHDATA *pMeshData,					// mesh data
+		const D3DXMATERIAL *pMaterials,					// materials of the mesh
+		const D3DXEFFECTINSTANCE *pEffectInstances,		// effects on the mesh
+		DWORD NumMaterials,								// number of materials in the mesh
+		const DWORD *pAdjacency,						// adjacency array for the mesh
+		LPD3DXSKININFO pSkinInfo,						// skin information for the mesh
+		LPD3DXMESHCONTAINER *ppNewMeshContainer);		// output mesh container
+
+	// Destroy a frame
+	STDMETHOD(DestroyFrame)(THIS_ LPD3DXFRAME pFrameToFree); // frame to delete
+
+	// Destroy a mesh container
+	STDMETHOD(DestroyMeshContainer)(THIS_ LPD3DXMESHCONTAINER pMeshContainerBase); // container to destroy
+};
+
 // define the MODEL class
 class MODEL {
+protected:
+	// Model
+	LPMESHCONTAINER m_pFirstMesh;			// First mesh in hierarchy
+	LPD3DXFRAME		m_pFrameRoot;			// Frame hierarchy of the model
+	LPD3DXMATRIX	m_pBoneMatrices;		// Used when calculating bone position
+	D3DXVECTOR3		m_vecCenter;			// Center of bounding sphere of object
+	float			m_fRadius;				// Radius of bounding sphere of object
+	UINT			m_uMaxBones;			// Max number of bones for the model
+	// Animation
+	DWORD			m_dwCurrentAnimation;	// current animation
+	DWORD			m_dwAnimationSetCount;	// number of animation sets
+	LPD3DXANIMATIONCONTROLLER	m_pAnimController; // Controller for the animations
+
+	void DrawFrame(LPFRAME pFrame);
+	void SetupBoneMatrices(LPFRAME pFrame, LPD3DXMATRIX pParentMatrix);
+	void UpdateFrameMatrices(LPFRAME pFrame, LPD3DXMATRIX pParentMatrix);
+
 public:
 	LPD3DXMESH mesh;
 	D3DMATERIAL9 *materials;
@@ -111,6 +178,29 @@ public:
 	void setModel();
 	void drawModel(CAMERA cam);
 	void loadModel(std::string filename);
+
+	// added for CModel
+	// construction and destruction
+	MODEL();
+	virtual ~MODEL();
+	// MODEL &operator=(const MODEL&) {}
+	// MODEL(const MODEL&){}
+
+	// inline functions
+	inline LPD3DXVECTOR3 GetBoundingSphereCenter()
+	{ return &m_vecCenter; }
+
+	inline float GetBoundingSphereRadius()
+	{ return m_fRadius; }
+
+	inline DWORD GetCurrentAnimation()
+	{ return m_dwCurrentAnimation; }
+
+	// public functions
+	void SetCurentAnimation(DWORD dwAnimationFlag);
+	void Draw(CAMERA cam);
+	void LoadXFile(std::string strFileName);
+	void Update(double dElapsedTime);
 };
 
 // Direct3D objects

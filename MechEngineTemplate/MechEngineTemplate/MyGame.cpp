@@ -17,7 +17,7 @@ const float NEAR_LENGTH = 1.0f;
 const float FAR_LENGTH = 100.0f; 
 const float FOV = D3DX_PI / 4.0f;
 float SCREEN_ASPECT;
-const bool FULLSCREEN = false; // overrides SCREENW and SCREENH 
+const bool FULLSCREEN = false; // overrides SCREENW and SCREENH
 D3DVIEWPORT9 m_mainViewport;
 CAMERA camObj;
 float m_screenWidth, m_screenHeight;
@@ -29,7 +29,7 @@ MODEL *floorMesh;
 MODEL *brickMesh;
 
 // Units
-UNIT zombieUnit;
+UNIT tinyUnit;
 
 // vector that holds all units
 std::vector<UNIT*> allUnits;
@@ -52,6 +52,13 @@ DWORD coretime = 0;
 double corefps = 0.0;
 double corecount = 0.0;
 DWORD currenttime = 0;
+
+// timing variables for CModel
+double startTime;
+LARGE_INTEGER nowTime;
+LONGLONG ticks;
+
+LARGE_INTEGER ourTime;
 
 // font variables
 LPD3DXFONT debugText = NULL;
@@ -102,6 +109,12 @@ bool Game_Init(HWND window)
 		return false;
 	}
 
+	QueryPerformanceCounter(&ourTime);
+	startTime = (double)ourTime.QuadPart;
+
+	QueryPerformanceFrequency(&ourTime);
+	ticks = ourTime.QuadPart;
+
 	// set screen width and height from viewport
 	d3ddev->GetViewport(&m_mainViewport);
 	m_screenWidth = m_mainViewport.Width;
@@ -142,8 +155,15 @@ bool Game_Init(HWND window)
 	brickMesh->translate.y = -1.0f;
 	brickMesh->translate.z = 2.0f;
 
-	zombieUnit.setUnit("zombie.x", "Zombie", 0.05f);
-	allUnits.push_back(&zombieUnit);
+	tinyUnit.setUnit("tiny.x", "Tiny", 0.05f);
+	tinyUnit.scale = D3DXVECTOR3(0.005f, 0.005f, 0.005f);
+	tinyUnit.rotate.y = -90.0f;
+	tinyUnit.rotate.z = 180.0f;
+	// using CModel functions to set up unit
+	tinyUnit.LoadXFile("tiny.x");
+	allUnits.push_back(&tinyUnit);
+	// set its animation
+	tinyUnit.SetCurentAnimation(tinyUnit.GetCurrentAnimation() + 1);
 
 	return true;
 }
@@ -256,11 +276,21 @@ void Game_Run(HWND window)
 		floorMesh->drawModel(camObj);
 		brickMesh->drawModel(camObj);
 		
+		QueryPerformanceCounter(&nowTime);
+		double dTime = ((nowTime.QuadPart - startTime) / ticks);
+
 		for (int i = 0; i < allUnits.size(); i++)
 		{
+			// allUnits[i]->moveUnit(allUnits[i]->endPosition);
+			// allUnits[i]->drawModel(camObj); 
+
+			// testing CModel functions
 			allUnits[i]->moveUnit(allUnits[i]->endPosition);
-			allUnits[i]->drawModel(camObj); 
+			allUnits[i]->Update(dTime);
+			allUnits[i]->Draw(camObj);
 		}
+
+		startTime = (double)nowTime.QuadPart;
 
 		spriteobj->Begin(D3DXSPRITE_ALPHABLEND);
 

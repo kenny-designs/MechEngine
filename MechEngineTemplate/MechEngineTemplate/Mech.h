@@ -8,8 +8,8 @@
 // define UNIT class which derives from the MODEL class in MyDirectX.h
 class UNIT : public MODEL {
 public:
-	std::string name; // the units name
-	float speedMult; // how quickly it moves
+	std::string name;		 // the units name
+	float speedMult;		 // how quickly it moves
 	D3DXVECTOR3 endPosition; // the position the UNIT should move to
 
 	void setUnit(std::string filename, std::string unitName, float speed); // sets values for the unit

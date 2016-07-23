@@ -600,6 +600,259 @@ bool FindFile(std::string *filename)
 	return false;
 }
 
+HRESULT CAllocateHierarchy::CreateFrame(LPCTSTR Name, LPD3DXFRAME *ppNewFrame)
+{
+	// Create a frame
+	// Using derived struct here
+	LPFRAME pFrame = new FRAME;
+	ZeroMemory(pFrame, sizeof(FRAME));
+
+	// Inicilize the passed in frame
+	*ppNewFrame = NULL;
+
+	// Put the name in the frame
+	if (Name)
+	{
+		int nNameSize = strlen(Name) + 1;
+		pFrame->Name = new char[nNameSize];
+		memcpy(pFrame->Name, Name, nNameSize * sizeof(char));
+	}
+	else
+		pFrame->Name = NULL;
+
+	// Inicilize the rest of the frame
+	pFrame->pFrameFirstChild = NULL;
+	pFrame->pFrameSibling = NULL;
+	pFrame->pMeshContainer = NULL;
+	D3DXMatrixIdentity(&pFrame->matCombined);
+	D3DXMatrixIdentity(&pFrame->TransformationMatrix);
+
+	// Set the output frame to the one that we have
+	*ppNewFrame = (LPD3DXFRAME)pFrame;
+
+	// It no longer points to the frame
+	pFrame = NULL;
+
+	// returns an HRESULT so give it the AOk result
+	return S_OK;
+}
+
+HRESULT CAllocateHierarchy::CreateMeshContainer(LPCTSTR Name, const D3DXMESHDATA *pMeshData,
+	const D3DXMATERIAL *pMaterials, const D3DXEFFECTINSTANCE *pEffectinstances,
+	DWORD NumMaterials, const DWORD *pAdjacency,
+	LPD3DXSKININFO pSkinInfo, LPD3DXMESHCONTAINER *ppNewMeshContainer)
+{
+	// Create a temp mesh container using derived struct
+	LPMESHCONTAINER pMeshContainer = new MESHCONTAINER;
+	ZeroMemory(pMeshContainer, sizeof(MESHCONTAINER));
+
+	// Incilialize pass in container
+	*ppNewMeshContainer = NULL;
+
+	if (Name)
+	{
+		// put in the name
+		int nNameSize = strlen(Name) + 1;
+		pMeshContainer->Name = new char[nNameSize];
+		memcpy(pMeshContainer->Name, Name, nNameSize * sizeof(char));
+	}
+	else
+		pMeshContainer->Name = NULL;
+
+	pMeshContainer->MeshData.Type = D3DXMESHTYPE_MESH;
+
+	// get the number of faces for adjacency
+	DWORD dwFaces = pMeshData->pMesh->GetNumFaces();
+
+	// get initcilize all the other data
+	pMeshContainer->NumMaterials = NumMaterials;
+
+	// create the arrays for the materials and the textures
+	pMeshContainer->pMaterials9 = new D3DMATERIAL9[pMeshContainer->NumMaterials];
+
+	// multiply by 3 because there are three adjacent triangles
+	pMeshContainer->pAdjacency = new DWORD[dwFaces * 3];
+	memcpy(pMeshContainer->pAdjacency, pAdjacency, sizeof(DWORD) * dwFaces * 3);
+
+	// get the device to use
+	LPDIRECT3DDEVICE9 pd3dDevice = NULL; // Direct3D rendering device
+	pMeshData->pMesh->GetDevice(&pd3dDevice);
+
+	pMeshData->pMesh->CloneMeshFVF(D3DXMESH_MANAGED,
+		pMeshData->pMesh->GetFVF(), pd3dDevice,
+		&pMeshContainer->MeshData.pMesh);
+
+	pMeshContainer->ppTextures = new LPDIRECT3DTEXTURE9[NumMaterials];
+	for (DWORD dw = 0; dw < NumMaterials; ++dw)
+	{
+		pMeshContainer->ppTextures[dw] = NULL;
+
+		if (pMaterials[dw].pTextureFilename && strlen(pMaterials[dw].pTextureFilename) > 0)
+		{
+			if (FAILED(D3DXCreateTextureFromFile(pd3dDevice,
+				pMaterials[dw].pTextureFilename, &pMeshContainer->ppTextures[dw])))
+				pMeshContainer->ppTextures[dw] = NULL;
+		}
+	}
+
+	// release the device
+	// SAFE_RELEASE(pd3dDevice);
+
+	if (pd3dDevice != NULL) // this is what SAFE_RELEASE actually does
+	{
+		pd3dDevice->Release();
+		pd3dDevice = NULL;
+	}
+
+	if (pSkinInfo)
+	{
+		// first save off the SkinInfo and original mesh data
+		pMeshContainer->pSkinInfo = pSkinInfo;
+		pSkinInfo->AddRef();
+
+		// Will need an array of offset matrices to move the vertices from
+		// the figure space to the bone's space
+		UINT uBones = pSkinInfo->GetNumBones();
+		pMeshContainer->pBoneOffsets = new D3DXMATRIX[uBones];
+
+		// create the arrays for the bones and the frame matrices
+		pMeshContainer->ppFrameMatrices = new D3DXMATRIX*[uBones];
+
+		// get each of the bone offset matrices so that we don't need to
+		// get them later
+		for (UINT i = 0; i < uBones; i++)
+			pMeshContainer->pBoneOffsets[i] = *(pMeshContainer->pSkinInfo->GetBoneOffsetMatrix(i));
+	}
+	else
+	{
+		pMeshContainer->pSkinInfo = NULL;
+		pMeshContainer->pBoneOffsets = NULL;
+		pMeshContainer->pSkinMesh = NULL;
+		pMeshContainer->ppFrameMatrices = NULL;
+	}
+
+	pMeshContainer->pMaterials = NULL;
+	pMeshContainer->pEffects = NULL;
+
+	// set the output mesh container to the temp one
+	*ppNewMeshContainer = pMeshContainer;
+	pMeshContainer = NULL;
+
+	// returns an HRESULT so give it the AOk result
+	return S_OK;
+}
+
+HRESULT CAllocateHierarchy::DestroyFrame(LPD3DXFRAME pFrameToFree)
+{
+	// conver the frame
+	LPFRAME pFrame = (LPFRAME)pFrameToFree;
+
+	// delete the name
+	if (pFrame->Name)
+	{
+		delete[] pFrame->Name;
+		pFrame->Name = NULL;
+	}
+
+	// delete the frame
+	if (pFrame)
+	{
+		delete pFrame;
+		pFrame = NULL;
+	}
+
+	// returns an HRESULT so give it the AOk result
+	return S_OK;
+}
+
+HRESULT CAllocateHierarchy::DestroyMeshContainer(LPD3DXMESHCONTAINER pMeshContainerBase)
+{
+	// convert to my derived struct type
+	LPMESHCONTAINER pMeshContainer = (LPMESHCONTAINER)pMeshContainerBase;
+
+	// if there is a name
+	if (pMeshContainer->Name)
+	{
+		delete[] pMeshContainer->Name;
+		pMeshContainer->Name = NULL;
+	}
+
+	// if there are materials
+	if (pMeshContainer->pMaterials9)
+	{
+		delete[] pMeshContainer->pMaterials9;
+		pMeshContainer->pMaterials9 = NULL;
+	}
+
+	// release the textures
+	if (pMeshContainer->ppTextures)
+	{
+		for (UINT i = 0; i < pMeshContainer->NumMaterials; ++i)
+		{
+			pMeshContainer->ppTextures[i]->Release();
+			pMeshContainer->ppTextures[i] = NULL;
+		}
+	}
+
+	// if there is a adjacency data
+	if (pMeshContainer->pAdjacency)
+	{
+		delete[] pMeshContainer->pAdjacency;
+		pMeshContainer->pAdjacency = NULL;
+	}
+
+	// if there are bone parts
+	if (pMeshContainer->pBoneOffsets)
+	{
+		delete[] pMeshContainer->pBoneOffsets;
+		pMeshContainer->pBoneOffsets = NULL;
+	}
+
+	// if there are frame matrices
+	if (pMeshContainer->ppFrameMatrices)
+	{
+		delete[] pMeshContainer->ppFrameMatrices;
+		pMeshContainer->ppFrameMatrices = NULL;
+	}
+
+	if (pMeshContainer->pAttributeTable)
+	{
+		delete[] pMeshContainer->pAttributeTable;
+		pMeshContainer->pAttributeTable = NULL;
+	}
+
+	// if there is a copy of the mesh here
+	if (pMeshContainer->pSkinMesh)
+	{
+		pMeshContainer->pSkinMesh->Release();
+		pMeshContainer->pSkinMesh = NULL;
+	}
+
+	// if there is a mesh
+	if (pMeshContainer->MeshData.pMesh)
+	{
+		pMeshContainer->MeshData.pMesh->Release();
+		pMeshContainer->MeshData.pMesh = NULL;
+	}
+
+	// if there is skin information
+	if (pMeshContainer->pSkinInfo)
+	{
+		pMeshContainer->pSkinInfo->Release();
+		pMeshContainer->pSkinInfo = NULL;
+	}
+
+	// delete the mesh container
+	if (pMeshContainer)
+	{
+		delete pMeshContainer;
+		pMeshContainer = NULL;
+	}
+
+	// return an HRESULT so give it the AOk result
+	return S_OK;
+}
+
 void MODEL::setModel()
 {
 	material_count = 0;
@@ -816,6 +1069,310 @@ void MODEL::loadModel(std::string filename)
 	}
 	// done using material buffer
 	matbuffer->Release();
+}
+
+MODEL::MODEL()
+{
+	m_pFrameRoot = NULL;
+	m_pBoneMatrices = NULL;
+	m_vecCenter = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	m_fRadius = 0.0f;
+	m_dwCurrentAnimation = -1;
+	m_dwAnimationSetCount = 0;
+	m_uMaxBones = 0;
+	m_pAnimController = NULL;
+	m_pFirstMesh = NULL;
+}
+
+MODEL::~MODEL()
+{
+	// delete animation controller
+	if (m_pAnimController)
+	{
+		m_pAnimController->Release();
+		m_pAnimController = NULL;
+	}
+
+	// if there is a frame hierarchy
+	if (m_pFrameRoot)
+	{
+		// allocation class
+		CAllocateHierarchy Alloc;
+		D3DXFrameDestroy(m_pFrameRoot, &Alloc);
+		m_pFrameRoot = NULL;
+	}
+
+	// delete bones
+	if (m_pBoneMatrices)
+	{
+		delete[] m_pBoneMatrices;
+		m_pBoneMatrices = NULL;
+	}
+}
+
+void MODEL::LoadXFile(std::string strFileName)
+{
+	// allocation class
+	CAllocateHierarchy Alloc;
+
+	HRESULT meshResult;
+
+	// load mesh
+	if (FAILED(meshResult = D3DXLoadMeshHierarchyFromX(strFileName.c_str(), // file load
+		D3DXMESH_MANAGED,		// load options
+		d3ddev,					// d3d device
+		&Alloc,					// hierarchy allocation class
+		NULL,					// no effects
+		&m_pFrameRoot,			// frame hierarchy
+		&m_pAnimController)))	// animation controller
+	{
+		MessageBox(NULL, strFileName.c_str(), "Model load error", MB_OK);
+		if (meshResult == E_OUTOFMEMORY)
+			MessageBox(NULL, "Out of memory", "HRESULT error", MB_OK);
+		if (meshResult == D3DERR_INVALIDCALL)
+			MessageBox(NULL, "Invalid call", "HRESULT error", MB_OK);
+	}
+
+	if (m_pAnimController)
+		m_dwAnimationSetCount = m_pAnimController->GetMaxNumAnimationSets();
+
+	if (m_pFrameRoot)
+	{
+		// set the bones up
+		SetupBoneMatrices((LPFRAME)m_pFrameRoot, NULL);
+
+		// set up the bone matrices array
+		m_pBoneMatrices = new D3DXMATRIX[m_uMaxBones];
+		ZeroMemory(m_pBoneMatrices, sizeof(D3DXMATRIX) * m_uMaxBones);
+
+		// calculate the bounding sphere
+		D3DXFrameCalculateBoundingSphere(m_pFrameRoot,
+			&m_vecCenter, &m_fRadius);
+	}
+}
+
+void MODEL::SetupBoneMatrices(LPFRAME pFrame, LPD3DXMATRIX pParentMatrix)
+{
+	LPMESHCONTAINER pMesh = (LPMESHCONTAINER)pFrame->pMeshContainer;
+
+	// set up the bones on the mesh
+	if (pMesh)
+	{
+		if (!m_pFirstMesh)
+			m_pFirstMesh = pMesh;
+
+		// if there is a skinmesh, then setup the bone matrices
+		if (pMesh->pSkinInfo)
+		{
+			// create a copy of the mesh
+			pMesh->MeshData.pMesh->CloneMeshFVF(D3DXMESH_MANAGED,
+				pMesh->MeshData.pMesh->GetFVF(), d3ddev,
+				&pMesh->pSkinMesh);
+
+			if (m_uMaxBones < pMesh->pSkinInfo->GetNumBones())
+			{
+				// get the number of bones
+				m_uMaxBones = pMesh->pSkinInfo->GetNumBones();
+			}
+
+			LPFRAME pTempFrame = NULL;
+
+			// for each bone
+			for (UINT i = 0; i < pMesh->pSkinInfo->GetNumBones(); i++)
+			{
+				// find the frame
+				pTempFrame = (LPFRAME)D3DXFrameFind(m_pFrameRoot,
+					pMesh->pSkinInfo->GetBoneName(i));
+
+				// set the bone part
+				pMesh->ppFrameMatrices[i] = &pTempFrame->matCombined;
+			}
+		}
+	}
+
+	// check your sister
+	if (pFrame->pFrameSibling)
+		SetupBoneMatrices((LPFRAME)pFrame->pFrameSibling, pParentMatrix);
+
+	// check your son
+	if (pFrame->pFrameFirstChild)
+		SetupBoneMatrices((LPFRAME)pFrame->pFrameFirstChild, &pFrame->matCombined);
+}
+
+void MODEL::SetCurentAnimation(DWORD dwAnimationFlag)
+{
+	// if the animation is not one that we already using
+	// and the passed in flag is not bigger than the number of animations
+	if (dwAnimationFlag != m_dwCurrentAnimation && dwAnimationFlag < m_dwAnimationSetCount)
+	{
+		m_dwCurrentAnimation = dwAnimationFlag;
+		LPD3DXANIMATIONSET AnimSet = NULL;
+		m_pAnimController->GetAnimationSet(m_dwCurrentAnimation, &AnimSet);
+		m_pAnimController->SetTrackAnimationSet(0, AnimSet);
+		
+		// release the LPD3DXANIMATIONSET
+		if (AnimSet)
+		{
+			AnimSet->Release();
+			AnimSet = NULL;
+		}
+	}
+}
+
+// draw funcitons for CModel related functions
+void MODEL::Draw(CAMERA cam)
+{
+	D3DXMATRIX matWorld = cam.m_worldMatrix;
+	D3DXMATRIX transMat, rotMat, scaleMat, tempMat;
+
+	D3DXMatrixTranslation(&transMat, translate.x, translate.y, translate.z);
+
+	// prevents degree rotation from going over 360
+	// would like to find cleaner way if possible
+	if (rotate.x > 360.0f)
+		rotate.x -= 360.0f;
+	else if (rotate.x < 0.0f)
+		rotate.x += 360.0f;
+	if (rotate.y > 360.0f)
+		rotate.y -= 360.0f;
+	else if (rotate.y < 0.0f)
+		rotate.y += 360.0f;
+	if (rotate.z > 360.0f)
+		rotate.z -= 360.0f;
+	else if (rotate.z < 0.0f)
+		rotate.z += 360.0f;
+
+	D3DXMatrixRotationYawPitchRoll(&rotMat,
+		(float)toRadians(rotate.x),
+		(float)toRadians(rotate.y),
+		(float)toRadians(rotate.z));
+
+	D3DXMatrixScaling(&scaleMat, scale.x, scale.y, scale.z);
+
+	D3DXMatrixMultiply(&tempMat, &scaleMat, &rotMat);
+	D3DXMatrixMultiply(&matWorld, &tempMat, &transMat);
+
+	d3ddev->SetTransform(D3DTS_WORLD, &matWorld);
+
+	LPMESHCONTAINER pMesh = m_pFirstMesh;
+
+	// while there is a mesh try to draw it
+	while (pMesh)
+	{
+		// select the mesh to draw
+		LPD3DXMESH pDrawMesh = (pMesh->pSkinInfo) 
+			? pMesh->pSkinMesh : pMesh->MeshData.pMesh;
+
+		// draw each mesh subset with correct materials and texture
+		for (DWORD i = 0; i < pMesh->NumMaterials; ++i)
+		{
+			d3ddev->SetMaterial(&pMesh->pMaterials9[i]);
+			d3ddev->SetTexture(0, pMesh->ppTextures[i]);
+			pDrawMesh->DrawSubset(i);
+		}
+
+		// go to the next one
+		pMesh = (LPMESHCONTAINER)pMesh->pNextMeshContainer;
+	}
+}
+
+void MODEL::DrawFrame(LPFRAME pFrame)
+{
+	LPMESHCONTAINER pMesh = (LPMESHCONTAINER)pFrame->pMeshContainer;
+
+	// while there is a mesh try to draw it
+	while (pMesh)
+	{
+		// select the mesh to draw
+		LPD3DXMESH pDrawMesh = (pMesh->pSkinInfo)
+			? pMesh->pSkinMesh : pMesh->MeshData.pMesh;
+
+		// draw each mesh subset with correct materials and texture
+		for (DWORD i = 0; i < pMesh->NumMaterials; ++i)
+		{
+			d3ddev->SetMaterial(&pMesh->pMaterials9[i]);
+			d3ddev->SetTexture(0, pMesh->ppTextures[i]);
+			pDrawMesh->DrawSubset(i);
+		}
+
+		// go to the next one 
+		pMesh = (LPMESHCONTAINER)pMesh->pNextMeshContainer;
+	}
+
+	// check your sister
+	if (pFrame->pFrameSibling)
+		DrawFrame((LPFRAME)pFrame->pFrameSibling);
+
+	// check your son
+	if (pFrame->pFrameFirstChild)
+		DrawFrame((LPFRAME)pFrame->pFrameFirstChild);
+}
+
+// update function from CModel
+void MODEL::Update(double dElapsedTime)
+{
+	// temp callback handler for animation
+	LPD3DXANIMATIONCALLBACKHANDLER animCallback = NULL;
+
+	// set the time for animation
+	if (m_pAnimController && m_dwCurrentAnimation != -1)
+		m_pAnimController->AdvanceTime(dElapsedTime, animCallback);
+
+	// update the frame hierarchy
+	if (m_pFrameRoot)
+	{
+		UpdateFrameMatrices((LPFRAME)m_pFrameRoot, NULL);
+
+		LPMESHCONTAINER pMesh = m_pFirstMesh;
+		if (pMesh)
+		{
+			if (pMesh->pSkinInfo)
+			{
+				UINT Bones = pMesh->pSkinInfo->GetNumBones();
+				for (UINT i = 0; i < Bones; ++i)
+				{
+					D3DXMatrixMultiply(
+						&m_pBoneMatrices[i], // out
+						&pMesh->pBoneOffsets[i],
+						pMesh->ppFrameMatrices[i]
+					);
+				}
+
+				// lock the meshes' vertex buffers
+				void *SrcPtr, *DestPtr;
+				pMesh->MeshData.pMesh->LockVertexBuffer(D3DLOCK_READONLY, (void**)&SrcPtr);
+				pMesh->pSkinMesh->LockVertexBuffer(0, (void**)&DestPtr);
+
+				// Update the skinned mesh using provided transformations
+				pMesh->pSkinInfo->UpdateSkinnedMesh(m_pBoneMatrices, NULL, SrcPtr, DestPtr);
+
+				// unlock the meshes vertex buffers
+				pMesh->pSkinMesh->UnlockVertexBuffer();
+				pMesh->MeshData.pMesh->UnlockVertexBuffer();
+			}
+		}
+	}
+}
+
+void MODEL::UpdateFrameMatrices(LPFRAME pFrame, LPD3DXMATRIX pPartentMatrix)
+{
+	// parent check
+	if (pPartentMatrix)
+	{
+		D3DXMatrixMultiply(&pFrame->matCombined,
+			&pFrame->TransformationMatrix,
+			pPartentMatrix);
+	}
+	else
+		pFrame->matCombined = pFrame->TransformationMatrix;
+
+	// do the kid too
+	if (pFrame->pFrameSibling)
+		UpdateFrameMatrices((LPFRAME)pFrame->pFrameSibling, pPartentMatrix);
+
+	// make sure you get the first kid
+	if (pFrame->pFrameFirstChild)
+		UpdateFrameMatrices((LPFRAME)pFrame->pFrameFirstChild, &pFrame->matCombined);
 }
 
 // render state function
