@@ -30,6 +30,7 @@ MODEL *brickMesh;
 
 // Units
 UNIT tinyUnit;
+UNIT zombieUnit;
 
 // vector that holds all units
 std::vector<UNIT*> allUnits;
@@ -84,6 +85,14 @@ void Draw_HUD()
 		ToString(rayIntersectPos.z) + ")");
 	FontPrint(debugText, 10, 50, "The current selected unit is: " +
 		currentSU);
+	FontPrint(debugText, 10, 70, "Tiny current animation is: " + 
+		ToString(tinyUnit.GetCurrentAnimation()) +
+		" out of " +
+		ToString(tinyUnit.GetMaxAnimations()));
+	FontPrint(debugText, 10, 90, "Zombie current animation is: " + 
+		ToString(zombieUnit.GetCurrentAnimation()) +
+		" out of " +
+		ToString(zombieUnit.GetMaxAnimations()));
 }
 
 bool Game_Init(HWND window)
@@ -163,7 +172,12 @@ bool Game_Init(HWND window)
 	tinyUnit.LoadXFile("tiny.x");
 	allUnits.push_back(&tinyUnit);
 	// set its animation
-	tinyUnit.SetCurentAnimation(tinyUnit.GetCurrentAnimation() + 1);
+	tinyUnit.SetCurrentAnimation(tinyUnit.GetCurrentAnimation() + 1);
+
+	zombieUnit.setUnit("zombieAnim.x", "Zombie", 0.02f);
+	zombieUnit.LoadXFile("zombieAnim.x");
+	allUnits.push_back(&zombieUnit);
+	zombieUnit.SetCurrentAnimation(zombieUnit.GetCurrentAnimation() + 2);
 
 	return true;
 }
@@ -281,10 +295,6 @@ void Game_Run(HWND window)
 
 		for (int i = 0; i < allUnits.size(); i++)
 		{
-			// allUnits[i]->moveUnit(allUnits[i]->endPosition);
-			// allUnits[i]->drawModel(camObj); 
-
-			// testing CModel functions
 			allUnits[i]->moveUnit(allUnits[i]->endPosition);
 			allUnits[i]->Update(dTime);
 			allUnits[i]->Draw(camObj);

@@ -45,7 +45,7 @@
   <ItemGroup>
     <None Include="floor.x" />
     <None Include="brickWall.x" />
-    <None Include="zombie.x" />
+    <None Include="zombieAnim.x" />
     <None Include="tiny.x" />
   </ItemGroup>
   <ItemGroup>
@@ -62,6 +62,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="tiny_skin.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Zombie.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -196,8 +196,11 @@ public:
 	inline DWORD GetCurrentAnimation()
 	{ return m_dwCurrentAnimation; }
 
+	inline DWORD GetMaxAnimations()
+	{ return m_dwAnimationSetCount; }
+
 	// public functions
-	void SetCurentAnimation(DWORD dwAnimationFlag);
+	void SetCurrentAnimation(DWORD dwAnimationFlag);
 	void Draw(CAMERA cam);
 	void LoadXFile(std::string strFileName);
 	void Update(double dElapsedTime);

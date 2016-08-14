@@ -1199,7 +1199,7 @@ void MODEL::SetupBoneMatrices(LPFRAME pFrame, LPD3DXMATRIX pParentMatrix)
 		SetupBoneMatrices((LPFRAME)pFrame->pFrameFirstChild, &pFrame->matCombined);
 }
 
-void MODEL::SetCurentAnimation(DWORD dwAnimationFlag)
+void MODEL::SetCurrentAnimation(DWORD dwAnimationFlag)
 {
 	// if the animation is not one that we already using
 	// and the passed in flag is not bigger than the number of animations
