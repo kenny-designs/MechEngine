@@ -168,6 +168,7 @@ protected:
 
 public:
 	LPD3DXMESH mesh;
+	LPD3DXMESH boundingBox; // stores bounding box info for collisions
 	D3DMATERIAL9 *materials;
 	LPDIRECT3DTEXTURE9 *textures;
 	DWORD material_count;

@@ -857,6 +857,7 @@ void MODEL::setModel()
 {
 	material_count = 0;
 	mesh = NULL;
+	boundingBox = NULL;
 	materials = NULL;
 	textures = NULL;
 	translate = D3DXVECTOR3(0.0f, 0.0f, 0.0f);

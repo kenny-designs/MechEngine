@@ -1,3 +1,19 @@
+<----- Quick word about the current state of Mech Engine ----->
+As of right now, there's not much to see. You can have the models walk around 
+the scene and even try loading in a few of your own. Check out the MyGame.cpp
+and see what you can do! Sadly though, there aren't any epic battles to be had, 
+stories to follow, or even any additonal pylons to construct... There's still
+quite a ways to go before the engine will give us all that but, in due time, we 
+shall get there! If you have any questions, ideas, criticisms, or anything else
+please let me know! 
+
+I can be reached at alexanderman2004@yahoo.com. Please mention the Mech Engine 
+in the subject of your email or I might mistake it for spam.
+
+You can also visit my website at http://www.kenny-designs.com/
+
+
+
 The included files are a template for the Mech Engine. Below you'll
 find an FAQ explaining just what the Mech Engine is and how to use it. 
 
@@ -54,5 +70,4 @@ XInput.lib
 dsound.lib
 dxerr.lib
 
-Hit apply and you should be all set! Run the program and if you see a box with nothing but a blue
-screen then you know it compiled successfully.
+Hit apply and you should be all set!

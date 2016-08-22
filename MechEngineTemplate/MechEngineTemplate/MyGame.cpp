@@ -17,7 +17,7 @@ const float NEAR_LENGTH = 1.0f;
 const float FAR_LENGTH = 100.0f; 
 const float FOV = D3DX_PI / 4.0f;
 float SCREEN_ASPECT;
-const bool FULLSCREEN = false; // overrides SCREENW and SCREENH
+const bool FULLSCREEN = true; // overrides SCREENW and SCREENH
 D3DVIEWPORT9 m_mainViewport;
 CAMERA camObj;
 float m_screenWidth, m_screenHeight;
@@ -31,12 +31,14 @@ MODEL *brickMesh;
 // Units
 UNIT tinyUnit;
 UNIT zombieUnit;
+UNIT zombieUnit2;
+UNIT zombieUnit3;
 
 // vector that holds all units
 std::vector<UNIT*> allUnits;
 
 // current selected unit
-std::string currentSU;
+std::string currentSU = "Nothing"; // if nothing is selected then nothing can move
 // selection id
 DWORD selectID = NULL;
 
@@ -85,14 +87,25 @@ void Draw_HUD()
 		ToString(rayIntersectPos.z) + ")");
 	FontPrint(debugText, 10, 50, "The current selected unit is: " +
 		currentSU);
-	FontPrint(debugText, 10, 70, "Tiny current animation is: " + 
-		ToString(tinyUnit.GetCurrentAnimation()) +
-		" out of " +
-		ToString(tinyUnit.GetMaxAnimations()));
-	FontPrint(debugText, 10, 90, "Zombie current animation is: " + 
+	FontPrint(debugText, 10, 70, "Zombie current animation is: " + 
 		ToString(zombieUnit.GetCurrentAnimation()) +
 		" out of " +
 		ToString(zombieUnit.GetMaxAnimations()));
+	FontPrint(debugText, 10, 90, "Zombie location is: (" +
+		ToString(zombieUnit.translate.x) + ", " +
+		ToString(zombieUnit.translate.y) + ", " +
+		ToString(zombieUnit.translate.z) + ")");
+	FontPrint(debugText, 10, 110, "Zombie end location is: (" +
+		ToString(zombieUnit.endPosition.x) + ", " +
+		ToString(zombieUnit.endPosition.y) + ", " +
+		ToString(zombieUnit.endPosition.z) + ")");
+	FontPrint(debugText, 10, 130, "Zombie tempEndPos is: (" +
+		ToString(zombieUnit.tempEndPos.x) + ", " +
+		ToString(zombieUnit.tempEndPos.y) + ", " +
+		ToString(zombieUnit.tempEndPos.z) + ")");
+
+	if (zombieUnit.collisionState)
+		FontPrint(debugText, 10, 150, "Zombie is colliding!");
 }
 
 bool Game_Init(HWND window)
@@ -164,20 +177,44 @@ bool Game_Init(HWND window)
 	brickMesh->translate.y = -1.0f;
 	brickMesh->translate.z = 2.0f;
 
+	/*
 	tinyUnit.setUnit("tiny.x", "Tiny", 0.05f);
 	tinyUnit.scale = D3DXVECTOR3(0.005f, 0.005f, 0.005f);
 	tinyUnit.rotate.y = -90.0f;
 	tinyUnit.rotate.z = 180.0f;
 	// using CModel functions to set up unit
 	tinyUnit.LoadXFile("tiny.x");
-	allUnits.push_back(&tinyUnit);
+	// allUnits.push_back(&tinyUnit);
 	// set its animation
 	tinyUnit.SetCurrentAnimation(tinyUnit.GetCurrentAnimation() + 1);
+	*/
 
-	zombieUnit.setUnit("zombieAnim.x", "Zombie", 0.02f);
+	zombieUnit.setUnit("zombieAnim.x", "Zombie", 0.02f, 0.375f);
 	zombieUnit.LoadXFile("zombieAnim.x");
+	zombieUnit.translate.y = -1.0f;
+	zombieUnit.endPosition.y = -1.0f;
 	allUnits.push_back(&zombieUnit);
 	zombieUnit.SetCurrentAnimation(zombieUnit.GetCurrentAnimation() + 2);
+
+	zombieUnit2.setUnit("zombieAnim.x", "Zombie2", 0.02f, 0.375f);
+	zombieUnit2.LoadXFile("zombieAnim.x");
+	// zombieUnit2.endPosition.x = 1.0f;
+	zombieUnit2.translate.x = 2.0f;
+	zombieUnit2.translate.y = -1.0f;
+	zombieUnit2.endPosition.x = 2.0f;
+	zombieUnit2.endPosition.y = -1.0f;
+	allUnits.push_back(&zombieUnit2);
+	zombieUnit2.SetCurrentAnimation(zombieUnit2.GetCurrentAnimation() + 2);
+
+	zombieUnit3.setUnit("zombieAnim.x", "Zombie3", 0.02f, 0.375f);
+	zombieUnit3.LoadXFile("zombieAnim.x");
+	// zombieUnit3.endPosition.x = 4.0f;
+	zombieUnit3.translate.x = 4.0f;
+	zombieUnit3.translate.y = -1.0f;
+	zombieUnit3.endPosition.x = 4.0f;
+	zombieUnit3.endPosition.y = -1.0f;
+	allUnits.push_back(&zombieUnit3);
+	zombieUnit3.SetCurrentAnimation(zombieUnit3.GetCurrentAnimation() + 2);
 
 	return true;
 }
@@ -212,9 +249,16 @@ void Game_Run(HWND window)
 	// left click selects a unit
 	if (KEY_DOWN(VK_LBUTTON))
 	{
-		for (int i = 0; i < allUnits.size(); i++)
+		for (int i = 0; i <= allUnits.size(); i++)
 		{
-			if (rayIntersect(cursPt.x, cursPt.y, *allUnits[i], camObj,
+			if (i >= allUnits.size()) // we've gone through all units and nothing was selected
+			{
+				currentSU = "Nothing";
+				selectID = NULL;
+				break;
+			}
+
+			else if (rayIntersect(cursPt.x, cursPt.y, *allUnits[i], camObj,
 				m_screenWidth, m_screenHeight, rayIntersectPos))
 			{
 				currentSU = allUnits[i]->name;
@@ -231,12 +275,12 @@ void Game_Run(HWND window)
 		if (rayIntersect(cursPt.x, cursPt.y, *floorMesh, camObj,
 			m_screenWidth, m_screenHeight, rayIntersectPos))
 		{
-			if(selectID >= 0) allUnits[selectID]->endPosition = rayIntersectPos;
+			if(currentSU != "Nothing") allUnits[selectID]->endPosition = rayIntersectPos;
 		}
 	}
 
 	// Moves screen depending on mouse position
-	D3DXVECTOR3 camOffset = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 camOffset = D3DXVECTOR3(0.0f, 0.0f, 0.0f); // this bit can be made into its own function
 	if (cursPt.y <= 0)
 		camOffset.z += 0.15f;
 	if (cursPt.y >= m_screenHeight -1)
@@ -293,11 +337,27 @@ void Game_Run(HWND window)
 		QueryPerformanceCounter(&nowTime);
 		double dTime = ((nowTime.QuadPart - startTime) / ticks);
 
+		// set default values
 		for (int i = 0; i < allUnits.size(); i++)
 		{
+			allUnits[i]->collisionState = false;
+			allUnits[i]->resDir.clear();
+		}
+
+		for (int i = 0; i < allUnits.size(); i++)
+		{
+			// testing collisions
+			for (int n = i + 1; n < allUnits.size(); n++)
+				allUnits[i]->collisionCheck(*allUnits[n]);
+
+			// move, animate, and draw
 			allUnits[i]->moveUnit(allUnits[i]->endPosition);
 			allUnits[i]->Update(dTime);
 			allUnits[i]->Draw(camObj);
+			
+			// clear collision vectors
+			allUnits[i]->colLocations.clear();
+			allUnits[i]->colRadii.clear();
 		}
 
 		startTime = (double)nowTime.QuadPart;

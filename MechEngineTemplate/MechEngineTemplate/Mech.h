@@ -8,12 +8,22 @@
 // define UNIT class which derives from the MODEL class in MyDirectX.h
 class UNIT : public MODEL {
 public:
-	std::string name;		 // the units name
-	float speedMult;		 // how quickly it moves
-	D3DXVECTOR3 endPosition; // the position the UNIT should move to
+	std::string name;			 // the units name
+	float speedMult;			 // how quickly it moves
+	D3DXVECTOR3 endPosition;	 // the position the UNIT should move to
+	D3DXVECTOR3 tempEndPos;		 // temporary end position when colliding
+	float unitRadii;			 // used for checking collision between units
+	bool collisionState = false; // used to see if we are colliding
+	short nowDir = 0;			 // direction unit is moving in
+	std::vector<short> resDir;   // a list of reserved directions we can't move to after colliding
+	std::vector<D3DXVECTOR3> colLocations; // locations of units collided with
+	std::vector<float> colRadii; // corresponding radii of units collided with
 
-	void setUnit(std::string filename, std::string unitName, float speed); // sets values for the unit
+	void setUnit(std::string filename, std::string unitName, float speed, float radii); // sets unit values
 	void moveUnit(D3DXVECTOR3 endPos); // move unit to selected position and rotate
+	void collisionCheck(UNIT &other);  // checks for collision with a unit
+	bool collisionCheckSphere(D3DXVECTOR3 loc, float rad); // checks for sphere collision
+	void eightWayCheck(); // if colliding, the unit will find a new spot to move to in 8 directions
 };
 
 // math values
@@ -28,6 +38,22 @@ double wrap(double value, double bounds);
 double wrapAngleDegs(double degs);
 double LinearVelocityX(double angle);
 double LinearVelocityY(double angle);
+
+// finds distance between any two points
+template<class T>
+T distanceForm(T initX, T initY, T endX, T endY)
+{
+	T xVal = endX - initX;
+	xVal *= xVal;
+
+	T yVal = endY - initY;
+	yVal *= yVal;
+
+	T theDist = xVal + yVal;
+	theDist *= theDist;
+
+	return theDist;
+}
 
 // allow quick string conversion anywhere in the program
 template <class T>
