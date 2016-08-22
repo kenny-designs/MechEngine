@@ -1,8 +1,15 @@
-﻿  Mech.cpp
-c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mech.cpp(147): warning C4018: '<': signed/unsigned mismatch
-c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mech.cpp(207): warning C4018: '<': signed/unsigned mismatch
-c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mech.cpp(209): warning C4018: '<': signed/unsigned mismatch
-c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mech.cpp(221): warning C4018: '<': signed/unsigned mismatch
-c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mech.cpp(223): warning C4018: '<': signed/unsigned mismatch
-c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mech.cpp(242): warning C4018: '<': signed/unsigned mismatch
+﻿  MyGame.cpp
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(145): warning C4244: '=': conversion from 'DWORD' to 'float', possible loss of data
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(146): warning C4244: '=': conversion from 'DWORD' to 'float', possible loss of data
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(282): warning C4018: '<=': signed/unsigned mismatch
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(284): warning C4018: '>=': signed/unsigned mismatch
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(371): warning C4018: '<': signed/unsigned mismatch
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(377): warning C4018: '<': signed/unsigned mismatch
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(380): warning C4018: '<': signed/unsigned mismatch
+c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mech.h(149): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
+  c:\users\customer\documents\mech engine projects\_mechenginetemplate\mechenginetemplate\mechenginetemplate\mygame.cpp(292): note: see reference to function template instantiation 'bool rayIntersect<UNIT>(int,int,T &,CAMERA,float,float,D3DXVECTOR3 &)' being compiled
+          with
+          [
+              T=UNIT
+          ]
   MechEngineTemplate.vcxproj -> C:\Users\customer\Documents\Mech Engine Projects\_MechEngineTemplate\MechEngineTemplate\Debug\MechEngineTemplate.exe

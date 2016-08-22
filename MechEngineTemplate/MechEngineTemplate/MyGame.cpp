@@ -17,7 +17,7 @@ const float NEAR_LENGTH = 1.0f;
 const float FAR_LENGTH = 100.0f; 
 const float FOV = D3DX_PI / 4.0f;
 float SCREEN_ASPECT;
-const bool FULLSCREEN = true; // overrides SCREENW and SCREENH
+const bool FULLSCREEN = false; // overrides SCREENW and SCREENH
 D3DVIEWPORT9 m_mainViewport;
 CAMERA camObj;
 float m_screenWidth, m_screenHeight;
@@ -33,6 +33,9 @@ UNIT tinyUnit;
 UNIT zombieUnit;
 UNIT zombieUnit2;
 UNIT zombieUnit3;
+UNIT zombieUnit4;
+UNIT zombieUnit5;
+UNIT zombieUnit6;
 
 // vector that holds all units
 std::vector<UNIT*> allUnits;
@@ -215,6 +218,33 @@ bool Game_Init(HWND window)
 	zombieUnit3.endPosition.y = -1.0f;
 	allUnits.push_back(&zombieUnit3);
 	zombieUnit3.SetCurrentAnimation(zombieUnit3.GetCurrentAnimation() + 2);
+
+	zombieUnit4.setUnit("zombieAnim.x", "Zombie4", 0.02f, 0.375f);
+	zombieUnit4.LoadXFile("zombieAnim.x");
+	zombieUnit4.translate.y = -1.0f;
+	zombieUnit4.endPosition.y = -1.0f;
+	allUnits.push_back(&zombieUnit4);
+	zombieUnit4.SetCurrentAnimation(zombieUnit4.GetCurrentAnimation() + 2);
+
+	zombieUnit5.setUnit("zombieAnim.x", "Zombie5", 0.02f, 0.375f);
+	zombieUnit5.LoadXFile("zombieAnim.x");
+	// zombieUnit2.endPosition.x = 1.0f;
+	zombieUnit5.translate.x = 2.0f;
+	zombieUnit5.translate.y = -1.0f;
+	zombieUnit5.endPosition.x = 2.0f;
+	zombieUnit5.endPosition.y = -1.0f;
+	allUnits.push_back(&zombieUnit5);
+	zombieUnit5.SetCurrentAnimation(zombieUnit5.GetCurrentAnimation() + 2);
+
+	zombieUnit6.setUnit("zombieAnim.x", "Zombie6", 0.02f, 0.375f);
+	zombieUnit6.LoadXFile("zombieAnim.x");
+	// zombieUnit3.endPosition.x = 4.0f;
+	zombieUnit6.translate.x = 4.0f;
+	zombieUnit6.translate.y = -1.0f;
+	zombieUnit6.endPosition.x = 4.0f;
+	zombieUnit6.endPosition.y = -1.0f;
+	allUnits.push_back(&zombieUnit6);
+	zombieUnit6.SetCurrentAnimation(zombieUnit6.GetCurrentAnimation() + 2);
 
 	return true;
 }
